@@ -1,0 +1,30 @@
+local { :head, :meta, :body, :div } = require "lunaml"
+local lss = require "lunass" -- luna style sheet
+
+local mystyle = lss
+    mybox: lss.selector
+        flex: true
+        color: '#ff0000'
+        max-width: '100px'
+        child: lss.selector
+            padding: '1px'
+
+{
+    head
+        meta.title "Hello world!"
+        script "https://sth.mjs"
+    body
+        div align:'center', style: mystle.mybox
+            div style: mystyle.mybox.child
+                h1 "Hello!"
+            div style: mystyle.mybox.child
+                content here
+}
+
+<head>
+    <title>Hello world!</title>
+    <script src="https://sth.mjs"></script>
+</head>
+<body>
+    <div ></div>
+</body>

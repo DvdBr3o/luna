@@ -1,0 +1,118 @@
+-- 赋值 --
+local a = 1
+-- 解构
+local b, c, d = 1, 2, 3
+-- 重赋值
+a = "hello"
+
+-- 字符串字面量 --
+-- 多行
+local str_literal1 = "Hello, this is a string
+ that can be
+    separated into multiple lines!"
+-- 行头对齐
+local str_literal2 = 
+    "You can also
+    "align each line
+    "like this."
+-- 格式化字符串
+local str_literal3 = f"{a}!, maybe format support like this?" -- maybe `f` for a comptime function
+-- 函数调用 + 字符串字面量
+print f"xxxxx", a -- print(f("xxxxx"), a)
+print f "xxxxx", a -- print(f("xxxxx", a)) -- error
+
+-- 函数字面量 --
+local fun: Function -- `Function` 无参数, 除 callable 外无约束
+-- 无参数
+local fun = -> 1
+-- 无类型参数
+local fun = (a) -> a * 2
+-- 带类型参数
+local fun = (a: Number) -> a * 2
+-- 多行函数
+local fun = (lhs: String, rhs: String): String ->
+    local value = 1
+    f"{lhs}, value, {rhs}"
+-- 字典参数函数 + 默认值
+local fun = {c1: String = "hello", c2: Number, c3: Function} -> c3 f"{c1}, {c2 + 1}"
+fun { c3: &print, c1: "hello", c2: 42 }
+fun
+    c3: &print
+    c2: 42
+-- 元组返回值
+local fun = (s: String + Len(3, nil)) ->
+    s[1], s[2], s[3] -- 是否保留 lua 下标从 1 开始的规定?
+-- self 相关
+local fun = (@: String) -> @ .. 1
+-- 具名 self
+local fun = (@s: String) -> @ .. 2
+-- self + 字典参数
+local fun = (
+    @s: String, 
+    {
+        fore: String = "hello"
+        suf: String = "bye"
+    }
+): @ ->
+    print f"{fore}, {@}, {suf}"
+    -- 末尾无需写 @, `(...): @ -> ...` 默认返回 @
+
+-- self + 链式调用
+-- self 函数优先
+print "hello, i'm dvdbr3o, i'm 19 years old, i'm a man, yeah!"
+    split by: ","
+    reverse
+    transform s -> s .. "~"
+    join
+    print
+
+-- 函数调用 --
+sum = (a: Addable, b: Addable) -> a + b
+-- 无括号
+sum a, b
+-- 链式调用
+print sum a, b -- 默认右结合
+-- currying
+xmake_target = (name: String) -> (spec: Table) ->
+    spec.name = name
+    spec
+xmake_target "hello" {
+    kind: "static"
+    -- ...
+}
+
+-- 分支 --
+local b = 1
+-- if else
+if b ~= 1 ->
+    print "what?"
+elseif b ~= 2 ->
+    print "indeed."
+else ->
+    print "unreachable"
+--if indent
+if func
+    "a",
+    1, 2
+    ->
+        print "if with list"
+if func
+    arg1: 1
+    arg2: "ciallo~"
+    ->
+        print "if with table"
+if func {
+    1, 2, 3
+    arg: "hello"
+    "fuck"
+    42.114514
+} ->
+    print "if with mixed table"
+
+-- and or
+local readin = request.get "https://example.com" or "Haha"
+-- switch case
+local c = switch b
+    1: "1!"
+    2: "2!"
+    String: (@) -> @

@@ -1,0 +1,26 @@
+local xmake = require "xmake"
+local { :vcpkg } = xmake
+
+xmake.Target "luna"
+    kind:       "static"
+    languages:  "cxx20"
+    files:
+        => match @platfrom                          -- (target) -> match platform
+            windows:
+                "src/windows/Specific.hpp"
+                "src/windows/DxWrapper.hpp"
+            linux:
+                "src/linux/Specific.hpp"
+        "src/Parser.cpp"
+        "src/Lexer.cpp"
+        "src/Expression.cpp"
+    headerfiles:
+        "src/**.hpp"
+    packages:
+        public required package "glfw"              -- default as xrepo
+        public required vcpkg.package "stdexec"     -- same as `add_packages("vcpkg::stdexec")`
+        public required package "glad"
+            version: "^2.0.0"
+            configs:
+                mx: false
+                debug: => @mode is "debug"

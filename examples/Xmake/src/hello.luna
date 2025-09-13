@@ -1,0 +1,25 @@
+-- for
+local dvdbr3o = { 1, 2, 3, 4, 5 }
+
+dvdbr3o
+    |> sort_by (lhs, rhs) -> lhs < rhs
+    |> 
+
+Type:
+    __func: (constrictions) ->
+        where constrictions (T) ->
+
+local MyType = Table
+    foo: Number
+    bar: 
+
+gen_fun: (anything) ->
+    match (local T = typeof anything)
+        Number: ->
+            println "Dealing number!"
+        String: ->
+            println `Dealing #{anything}!`
+
+main: ->
+    local g = 1 -- typeof g == Number
+    gen_fun g

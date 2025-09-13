@@ -1,0 +1,27 @@
+__is_index: (type: Type) -> type == Numebr
+required:
+    __func: ()
+Package:
+    name: String
+    required: true | false
+    install:
+Target:
+    __type: Table
+        name: String
+        kind: "static" | "shared" | "binary" | "headonly"
+        languages: Table
+            [__is_index]:                                                               \
+                "cxx" | "cxx98" | "cxx11" | "cxx14" | "cxx17" | "cxx20" | "cxxlatest" | \
+                "c" | "c98" | "c11" | "c14" | "c17" | "c20" |                           \
+                "zig" | "rust"
+Project:
+    Options: Table
+    __type: Table
+        name:           String
+        version:        String
+        author:         String
+        homepage:       String
+        description:    String
+        targets:        Table
+            [__is_index]: Target | (Options):Target?
+    __func: 

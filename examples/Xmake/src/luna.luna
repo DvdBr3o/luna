@@ -1,0 +1,14 @@
+local xmake = require "xmake"
+local { Project, Target } = require "xmake"
+
+Project "luna"
+    version:        "0.1.0"
+    author:         "dvdbr3o"
+    homepage:       "luna.dvdbr3o.top"
+    description:    "A graceful script language."
+    Option: Type
+        helper: true | false
+    targets:
+        require "luna.xmake"
+        require "lunac.xmake"
+        (opts) -> opts.helper and require "helper.xmake"

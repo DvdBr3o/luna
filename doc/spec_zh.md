@@ -279,11 +279,11 @@ local fun = (@s: String, {
 ```lua
 -- self 函数优先
 print "hello, i'm dvdbr3o, i'm 19 years old, i'm a man, yeah!"
-    \split by: ","
-    \reverse!
-    \transform s -> s .. "~"
-    \join!
-    \print! -- print 也是 self 函数
+    .split by: ","
+    .reverse!
+    .transform s -> s .. "~"
+    .join!
+    .print! -- print 也是 self 函数
 ```
 
 ## 函数调用
@@ -298,10 +298,10 @@ sum = (a: Addable, b: Addable) -> a + b
 sum a, b
 ```
 
-### 链式调用
+### 函数嵌套
 
 ```lua
-print sum a, b -- 默认右结合
+print $ sum a, b -- 默认左结合 (为了支持柯里化), 用 `$` 表示 such that
 ```
 
 ### 柯里化
@@ -386,12 +386,15 @@ local res = try_something() and "success" or "fail"
 
 ### switch case
 
+luna 的 `switch` 是 `if-else` 的语法糖，并不能提供类似 c 的跳转表优化
+
 ```lua
 local c: String = switch b
     1           -> "1!"
     2           -> "2!"
-    (@: String) -> @
-    _           -> @ .. " as else"
+    @ > 2       -> ">2!"
+    @ is String -> @
+    else        -> @ .. " as else"
 ```
 
 ## 循环
@@ -402,8 +405,8 @@ local c: String = switch b
 for k, v in pairs mytable
     println f"{k}: {v}"
 
-mytable \foreach { k, v } -> println f"{k}, {v}"
-range(9) \foreach (i) -> println i
+mytable .foreach { k, v } -> println f"{k}, {v}"
+range(9) .foreach (i) -> println i
 ```
 
 ### while
@@ -427,8 +430,8 @@ i = i - 1 while i > 0
 local evens = [i for i in range(1, 101) when i % 2 == 0]
 -- equivalent to:
 local evens2 = range(1, 101)
-    \filter (i) -> i % 2
-    \to_list!
+    .filter (i) -> i % 2
+    .to_list!
 ```
 
 ### 字典型复合表达式
@@ -437,8 +440,8 @@ local evens2 = range(1, 101)
 local no_color = {k,v for k,v in pairs thing when k != "color"}
 -- equivalent to:
 local no_color2 = thing
-    \filter {k,v} -> k != "color"
-    \to_table!
+    .filter {k,v} -> k != "color"
+    .to_table!
 ```
 
 ## 抽象
@@ -480,17 +483,11 @@ local Dog = class
 #### 约束原语
 
 - `Unit`
-
 - `Number`
-
 - `String`
-
 - `Function`
-
 - `Enum`
-
 - `List`
-
 - `Table`
 
 ##### 枚举约束
@@ -582,6 +579,31 @@ catch e
 
 ### expected
 
+```lua
+local {
+    :Expected
+} = "luna.expected"
+local { :Ok, :Err } = Expected
+
+foo: (
+    a: Number,
+    b: Number
+): Expected Number
+    "negative"
+    "too_big"
+-> switch a + b
+    @ < 0   -> Err "negative"
+    @ > 10  -> Err "too_big"
+    else    -> Ok  @
+
+bar: ->
+    switch foo 2, 3
+        @ is Ok  -> print f"Ok with {@.value}"
+        @ is Err -> switch @.error
+            "negative" -> print "dude the result is neg."
+            "too_big"  -> print "dude the result is too big."
+```
+
 ### 空安全
 
 ## 编译期运算
@@ -589,35 +611,27 @@ catch e
 1. luna 认为满足以下*任一*条件的变量是 **编译期变量**
 
    - 数字字面量
-
    - 字符串字面量
-
    - [约束 `concept`](#面向约束)
-
    - [函数字面量](#函数字面量)
-
    - 函数的编译期调用结果
 
 2. luna 认为满足以下*所有*条件的函数调用是 **函数的编译期调用**
 
    - 所有参数都是编译期变量
-
    - 不捕获任何外部变量
 
 3. luna 认为所有函数默认在*编译期调用*, 不满足编译期调用条件的函数调用为运行期调用
-
 4. 函数返回结果类型约束
 
    - 编译期调用
 
      - 未指定返回类型约束时为原变量的等价约束
-
      - 指定返回类型约束时则为指定约束
 
    - 运行期调用
 
      - 未指定返回类型约束时为 `Any`
-
      - 指定返回类型约束时则为指定约束
 
 ## 反射
@@ -712,7 +726,7 @@ Version: Table
     patch: Number
 
 v: (version: String): Version ->
-    local v = version\split by: "."
+    local v = version\split by: "." or panic [[version string does not fit pattern "x.x.x"]]
     return
         major: v[1]
         minor: v[2]
@@ -736,25 +750,34 @@ Dependency: Table
     info:
         version:  Optional Version
         configs:  Optional List.of Table.of String, Any
-        required: Bool or true -- Concept.<or>: (@, defaultv: @) -> ConceptWithDefault @, defaultv
+        required: Bool
 
-    <from>: (k: Number | String, dep: Table): Dependency ->
-        switch k
-            (@: Number) -> name: @
-            (@: String) ->
-                name: @
-                info: dep
+    <from>: (
+        k: Number | String,
+        dep: Table
+    ): Dependency -> switch k
+        @ is Number -> name: @
+        @ is String ->
+            name: @
+            info: -- TODO:
 
-
+Config:
+    of: (name: String): Config -> require(name).configs
+    <concept>: Table
+        name:        String
+        type:        Bool | Number | String | Enum
+        description: String
 
 Package:
-    <concept>:
-        name: String
-        deps: List.of Dependency
+    <concept>: Table
+        name:       String
+        configs:    ()
+        deps:       List.of Dependency
     <call>: {
-        name: String
-        deps: Table
+        name:       String
+        configs:    List.of Config
+        deps:       List.of Dependency
     }: Package ->
         :name
-        deps: Dependency.from dep for dep in pairs deps
+        deps: [Dependency.from dep for dep in pairs deps]
 ```

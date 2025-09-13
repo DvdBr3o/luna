@@ -1,0 +1,5 @@
+-- TODO: Learn type system in typescript and add type check here.
+match: (matchable) -> (match_table: Table) ->
+    for k,v in match_table
+        if matchable == k
+            return v

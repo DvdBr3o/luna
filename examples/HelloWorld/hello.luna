@@ -1,0 +1,8 @@
+local lua = require "lua"
+local ffi = require "ffi"
+local io = require "io"
+
+local lua_module = lua.require "dir.lua_file"
+local c_lib = ffi.require "shared/glfw.dll"
+
+io.print "hello world!"
