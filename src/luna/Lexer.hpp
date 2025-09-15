@@ -114,7 +114,6 @@ namespace luna::lex {
 		Exclaimation,  // !
 		Dollar,		   // $
 		// Other
-		Comment,		   // --
 		LeftParenthesis,   // (
 		RightParenthesis,  // )
 		LeftBracket,	   // [
@@ -147,7 +146,6 @@ namespace luna::lex {
 		{ "..",				Operator::Concat },
 		{  "!",	   Operator::Exclaimation },
 		{  "$",			   Operator::Dollar },
-		{ "--",			Operator::Comment },
 		{  "(",	   Operator::LeftParenthesis },
 		{  ")",   Operator::RightParenthesis },
 		{  "[",		   Operator::LeftBracket },
@@ -180,7 +178,6 @@ namespace luna::lex {
 			{			  Operator::Concat, ".." },
 			{		  Operator::Exclaimation,  "!" },
 			{			  Operator::Dollar,	"$" },
-			{			  Operator::Comment, "--" },
 			{	  Operator::LeftParenthesis,	 "(" },
 			{	  Operator::RightParenthesis,  ")" },
 			{		  Operator::LeftBracket,	 "[" },
@@ -251,9 +248,40 @@ namespace luna::lex {
 
 		[[nodiscard]] auto script() const -> u8::StringView { return _script.view(); }
 
+	public:
+		class View;
+		class Cursor;
+
 	private:
 		u8::String _script;
 	};
+
+	class TokenStream::View {
+	public:
+	public:
+		View(TokenStream& ts, std::size_t start, std::size_t len) :
+			_ts(ts), _start(start), _len(len) {}
+
+	public:
+		[[nodiscard]] auto subview(std::size_t start) const -> View {
+			assert((_len - start >= 0));
+			return { _ts, _start + start, _len - start };
+		}
+
+		[[nodiscard]] auto subview(std::size_t start, std::size_t len) const -> View {
+			assert((len <= _len - start));
+			return { _ts, _start + start, len };
+		}
+
+		auto operator[](std::size_t index) -> Token { return _ts[_start + index]; }
+
+	public:
+		TokenStream& _ts;
+		std::size_t	 _start;
+		std::size_t	 _len;
+	};
+
+	class TokenStream::Cursor : public TokenStream::View {};
 
 	struct TokResult {
 		Token		   token;
@@ -565,6 +593,16 @@ namespace luna::lex {
 					}
 				}
 			}
+		}
+
+		return std::nullopt;
+	}
+
+	inline static auto lex_comment(u8::StringView script) -> std::optional<TokResult> {
+		using std::operator""sv;
+
+		if (script.substr(0, 2) == u8"--"sv) {
+			// TODO:
 		}
 
 		return std::nullopt;
