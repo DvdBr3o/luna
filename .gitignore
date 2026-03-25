@@ -15,3 +15,7 @@
 
 # Remainings
 !.vscode/launch.json
+
+# mlir
+*tablegen_compile_commands.yml
+*pdll_compile_commands.yml

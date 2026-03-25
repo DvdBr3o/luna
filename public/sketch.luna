@@ -1,0 +1,35 @@
+if: cond -> f -> If
+    cond: cond
+    f: f
+    <exec>: __builtin(cond, f)
+
+between: self, lo, hi ->
+    <as.boolean>: lo <= self and self <= hi
+    <if.restrict>: decltype(self) + Concept
+        
+if x .between 1, 2 =>
+    x = x + 1
+.else =>
+    x = x - 1
+
+-- [[ into:
+If:
+    cond:
+        subj: x
+        pred: 1, 2
+    f: Fn
+        Assign
+            subj: x
+]]
+
+Ref:
+    kind: Enum
+        "ref"
+        "refmut"
+    <call>: x -> x .Table.cat
+        <Ref.kind>: Ref.kind.ref
+    
+
+foo: (a: Ref, b: Ref) ->
+    local ShorterRef = Ref.shorter a, b
+    if a < b

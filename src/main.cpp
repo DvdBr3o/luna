@@ -1,47 +1,47 @@
-#include "Toy.h.inc"
+#include <mlir/IR/AsmState.h>
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/Diagnostics.h>
+#include <mlir/IR/MLIRContext.h>
+#include <mlir/Parser/Parser.h>
+#include <mlir/Pass/PassRegistry.h>
+#include <mlir/Support/FileUtilities.h>
+#include <mlir/Dialect/Func/IR/FuncOps.h>
+#include <mlir/Dialect/Arith/IR/Arith.h>
+#include <mlir/Pass/Pass.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+#include <mlir/Pass/PassManager.h>
+#include <mlir/Parser/Parser.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/SourceMgr.h>
 
-#include "mlir/IR/AsmState.h"
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/Parser/Parser.h"
-#include "mlir/Support/FileUtilities.h"
+#include "luna/Lua/Lua.op.h.inc"
+#include "luna/Lua/Lua.dialect.h.inc"
+#include "mlir/IR/OwningOpRef.h"
 
-#include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/Dialect/Arith/IR/Arith.h"
-#include "llvm/Support/raw_ostream.h"
+#include <format>
 
 using namespace mlir;
 
-int main(int argc, char** argv) {
-	MLIRContext ctx;
-	ctx.loadDialect<func::FuncDialect, arith::ArithDialect>();
+int main() {
+	mlir::DialectRegistry registry;
+	registry.insert<mlir::lua::LuaDialect, mlir::func::FuncDialect, mlir::LLVM::LLVMDialect>();
+	mlir::MLIRContext context { registry };
+	context.loadAllAvailableDialects();
+	llvm::outs() << "registered dialects:\n";
+	for (const auto& name : context.getDialectRegistry().getDialectNames())
+		llvm::outs() << name << '\n';
 
-	// 创建 OpBuilder
-	OpBuilder builder(&ctx);
-	auto	  mod = builder.create<ModuleOp>(builder.getUnknownLoc());
-	// auto toy = builder.create<toy::AddOp>(builder.getUnknownLoc());
+	auto source_mgr = std::make_shared<llvm::SourceMgr>();
+	auto mod =
+		mlir::parseSourceFile("public/hello.mlir", source_mgr, mlir::ParserConfig { &context });
 
-	// 设置插入点
-	builder.setInsertionPointToEnd(mod.getBody());
+	if (!mod)
+		llvm::outs() << "failed to load!\n";
 
-	// 创建 func
-	auto i32	  = builder.getI32Type();
-	auto funcType = builder.getFunctionType({ i32, i32 }, { i32 });
-	auto func	  = builder.create<func::FuncOp>(builder.getUnknownLoc(), "test", funcType);
-
-	// 添加基本块
-	auto entry = func.addEntryBlock();
-	auto args  = entry->getArguments();
-
-	// 设置插入点
-	builder.setInsertionPointToEnd(entry);
-
-	// 创建 arith.addi
-	auto addi = builder.create<arith::AddIOp>(builder.getUnknownLoc(), args[0], args[1]);
-
-	// 创建 func.return
-	builder.create<func::ReturnOp>(builder.getUnknownLoc(), ValueRange({ addi }));
 	mod->print(llvm::outs());
-	return 0;
+
+	mlir::PassManager pm { &context };
+
+	llvm::outs() << "here\n";
 }

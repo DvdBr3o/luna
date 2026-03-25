@@ -1,1 +1,2 @@
 includes("mlir")
+includes("pars")

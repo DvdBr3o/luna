@@ -4,24 +4,46 @@ includes("xmake")
 
 add_requires("mlir")
 
-target("hello_mlir")
-    set_languages("cxx20")
-    add_rules("mlir.tblgen", {includedirs = {"src"}})
-
-    set_runtimes("MT")
-
+target("luna.td")
+    set_kind("object")
+    add_rules("mlir.tblgen", {includedirs = {"src", "src/Lua"}})
+    add_rules("mlir.lsp")
     add_packages("mlir")
-
-    add_headerfiles("src/**.hpp")
-    add_files("src/**.cpp")
     add_files("src/**.td")
-    add_includedirs("src")
+
+target("luna")
+    set_languages("cxx20")
+    set_kind("static")
+    add_rules("mlir.precompiled")
+    add_deps("luna.td")
+
+    add_packages("mlir", {public = true})
+
+    add_headerfiles("src/**.hpp", {public = true})
+    add_files("src/**.cpp|!src/main.cpp")
+    add_includedirs("src", {public = true})
 
     after_build(function (target)
         os.rm(path.join(target:targetdir(), "public"))
         os.cp("public", path.join(target:targetdir(), "public"))
     end)
 
-    if is_plat("windows") then
-        add_syslinks("ntdll")
-    end
+target("luna.cli")
+    set_languages("cxx20")
+    set_kind("binary")
+    add_deps("luna")
+    add_rules("mlir.precompiled")
+    add_packages("mlir")
+    add_files("src/**.cpp")
+
+target("luna.lsp")
+    set_languages("cxx20")
+    set_kind("binary")
+    add_rules("mlir.precompiled")
+    add_deps("luna")
+    add_packages("mlir")
+    -- if is_plat("windows") then
+    --     add_ldflags("/FORCE:MULTIPLE")
+    -- end
+    add_files("tools/lsp.cpp")
+    
