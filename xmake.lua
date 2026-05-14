@@ -1,8 +1,9 @@
 add_rules("mode.debug", "mode.release")
 
-includes("xmake")
+includes("vendor")
 
 add_requires("mlir")
+add_requires("pars main")
 
 target("luna.td")
     set_kind("object")
@@ -18,8 +19,9 @@ target("luna")
     add_deps("luna.td")
 
     add_packages("mlir", {public = true})
+    add_packages("pars", {public = true})
 
-    add_headerfiles("src/**.hpp", {public = true})
+    add_headerfiles("src/(**.hpp)", {public = true})
     add_files("src/**.cpp|!src/main.cpp")
     add_includedirs("src", {public = true})
 

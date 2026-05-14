@@ -18,4 +18,6 @@
 
 # mlir
 *tablegen_compile_commands.yml
-*pdll_compile_commands.yml
+*pdll_compile_commands.yml# pixi environments
+.pixi/*
+!.pixi/config.toml
