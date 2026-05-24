@@ -5,7 +5,7 @@
 *.cache
 *.pixi
 
-# Auto Gen
+# auto gen
 *build
 *clangd-trace.json
 *compile_commands.json
@@ -13,7 +13,7 @@
 *vsxmake2022
 *CMakeLists.txt
 
-# Remainings
+# remainings
 !.vscode/launch.json
 
 # mlir
@@ -21,3 +21,6 @@
 *pdll_compile_commands.yml# pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# misc
+/sketch

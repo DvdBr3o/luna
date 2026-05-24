@@ -1,31 +1,38 @@
 #pragma once
 
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/Support/TargetSelect.h>
+#if defined LUNA_USE_EMBEDDED_LLVM
+
+#	include <llvm/IR/LLVMContext.h>
+#	include <llvm/Support/TargetSelect.h>
+#	include <llvm/TargetParser/Triple.h>
 
 namespace luna {
-class LlvmContextManger {
+class LLVMManager {
 public:
-	inline static auto get() -> LlvmContextManger& {
-		static LlvmContextManger manager;
+	inline static auto get() -> LLVMManager& {
+		static LLVMManager manager;
 		return manager;
 	}
 
-	inline static auto context() -> llvm::LLVMContext& { return get()._context; }
+	inline static auto init() -> void { get(); }
 
 private:
-	LlvmContextManger() {
+	LLVMManager() {
 		llvm::InitializeAllTargets();
 		llvm::InitializeAllTargetMCs();
 		llvm::InitializeAllAsmPrinters();
 		llvm::InitializeAllAsmParsers();
 	}
-
-private:
-	llvm::LLVMContext _context;
 };
 
-inline auto llvm_context() -> llvm::LLVMContext& {
-	return LlvmContextManger::context();
-}
+class LLVMTextEmitter {
+public:
+};
+
+class LLVMModuleEmitter {
+public:
+};
+
 }  // namespace luna
+
+#endif
