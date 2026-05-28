@@ -70,7 +70,7 @@ SortIncludes: Never
 IndentAccessModifiers: False
 IndentCaseBlocks: True
 IndentCaseLabels: True
-IndentExternBlock: Indent
+IndentExternBlock: NoIndent
 IndentGotoLabels: True
 IndentPPDirectives: AfterHash
 # IndentRequires:
