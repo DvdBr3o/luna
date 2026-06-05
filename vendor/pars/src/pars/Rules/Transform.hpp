@@ -39,6 +39,9 @@ struct ValueTransformRule {
 	}
 };	// namespace pars
 
+template<typename RuleT, typename FnT>
+ValueTransformRule(RuleT&&, FnT&&) -> ValueTransformRule<std::remove_cvref_t<RuleT>, FnT>;
+
 template<typename FnT>
 struct ValueTransformFunctor {
 	FnT fn;
@@ -46,13 +49,13 @@ struct ValueTransformFunctor {
 
 template<typename RuleT, typename FnT>
 inline constexpr auto operator%=(RuleT&& rule, ValueTransformFunctor<FnT>&& functor)
-	-> ValueTransformRule<RuleT, FnT> {
+	-> ValueTransformRule<std::remove_cvref_t<RuleT>, FnT> {
 	return {std::forward<RuleT>(rule), std::forward<FnT>(functor.fn)};
 }
 
 template<typename RuleT, typename FnT>
 inline constexpr auto operator^(RuleT&& rule, ValueTransformFunctor<FnT>&& functor)
-	-> ValueTransformRule<RuleT, FnT> {
+	-> ValueTransformRule<std::remove_cvref_t<RuleT>, FnT> {
 	return {std::forward<RuleT>(rule), std::forward<FnT>(functor.fn)};
 }
 
@@ -87,6 +90,11 @@ struct ValueApplyRule {
 			);
 		else
 			return tl::make_unexpected(std::move(error_of(res)));
+	}
+
+	inline friend constexpr auto operator==(const ValueApplyRule& l, const ValueApplyRule& r)
+		-> bool {
+		return l.rule == r.rule;
 	}
 };
 
@@ -143,6 +151,11 @@ struct ValueVisitRule {
 			);
 		else
 			return tl::make_unexpected(std::move(error_of(res)));
+	}
+
+	inline friend constexpr auto operator==(const ValueVisitRule& l, const ValueVisitRule& r)
+		-> bool {
+		return l.rule == r.rule;
 	}
 };
 

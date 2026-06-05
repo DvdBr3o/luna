@@ -178,11 +178,43 @@ inline auto to_string(const std::variant<Ts...>& v) -> std::string {
 	return std::visit(overload {[](const auto& o) { return to_string(o); }}, v);
 }
 
+template<typename Cand, typename... Ts>
+struct unique_type_variant {};
+
+template<typename... CandTs, typename... VTs, typename... Ts>
+struct unique_type_variant<std::tuple<CandTs...>, std::variant<VTs...>, Ts...> {
+	using type = unique_type_variant<std::tuple<CandTs...>, VTs..., Ts...>::type;
+};
+
+template<typename... CandTs, typename T0, typename... Ts>
+struct unique_type_variant<std::tuple<CandTs...>, T0, Ts...> {
+	using type = std::conditional_t<
+		is_among_v<T0, CandTs...>,											  //
+		typename unique_type_variant<std::tuple<CandTs...>, Ts...>::type,	  //
+		typename unique_type_variant<std::tuple<CandTs..., T0>, Ts...>::type  //
+		>;
+};
+
+template<typename CandT0, typename... CandTs>
+struct unique_type_variant<std::tuple<CandT0, CandTs...>> {
+	using type = std::variant<CandT0, CandTs...>;
+};
+
+template<typename CandT>
+struct unique_type_variant<std::tuple<CandT>> {
+	using type = CandT;
+};
+
+template<>
+struct unique_type_variant<std::tuple<>> {
+	using type = void;
+};
+
 /// @brief `std::variant<Ts...>` but with duplicated types in `Ts...` uniqued.
 ///
 /// e.g. `unique_type_variant_t<int, int, int, double, int> == std::variant<int, double>`
 template<typename... Ts>
-using unique_type_variant_t = templ_from_type_tuple_t<std::variant, tuple_cup_t<std::tuple<Ts>...>>;
+using unique_type_variant_t = unique_type_variant<std::tuple<>, Ts...>::type;
 
 template<typename FnT, Like<std::tuple> TupleT>
 struct apply_result {};

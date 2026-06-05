@@ -15,6 +15,8 @@ template<typename... RuleTs>
 struct ChoiceRule : std::tuple<RuleTs...> {
 	using std::tuple<RuleTs...>::tuple;
 
+	using required_queries_type = required_queries_of_rules_t<RuleTs...>;
+
 	template<typename StateT>
 	struct Error : std::tuple<rule_error_t<StateT, RuleTs>...> {
 		using std::tuple<rule_error_t<StateT, RuleTs>...>::tuple;

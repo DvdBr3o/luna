@@ -71,7 +71,7 @@ inline constexpr auto cset(std::convertible_to<char32_t> auto... cs) {
 	return single_char_rule(
 		[=](char32_t c) { return ((c == cs) || ...); },
 		[=](char32_t c)->CharSetMismatchError<sizeof...(cs)> {
-			auto expected = std::array<char32_t, sizeof...(cs)> {cs...};
+			auto expected = std::array<char32_t, sizeof...(cs)> {static_cast<char32_t>(cs)...};
 			std::ranges::sort(expected);
 			return {
 				.expected	= std::move(expected),

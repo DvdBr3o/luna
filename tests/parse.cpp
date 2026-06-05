@@ -1,3 +1,4 @@
+#include "luna/Parse/Rule.hpp"
 #include "pars/Meta.hpp"
 #include "pars/Rules/Effect.hpp"
 #include "pars/Rules/Char.hpp"
@@ -48,8 +49,14 @@ TEST_CASE("pars can parse embrace utils.", "[pars.rules.utils.embrace]") {
 	REQUIRE(match_luna(r, u8"{aaaaa}"));
 }
 
+TEST_CASE("can parse identifier", "[luna.parse.ident]") {
+	REQUIRE(match_luna(Parse::val_ident, u8"hello").value() == U"hello");
+	REQUIRE(match_luna(Parse::val_ident, u8"hello123").value() == U"hello123");
+	REQUIRE(match_luna(Parse::val_ident, u8"Hello123A").value() == U"Hello123A");
+}
+
 TEST_CASE("can parse member access grammer", "[luna.parse.access.member]") {
-	//
+	// TODO:
 }
 
 }  // namespace luna::tests::parse

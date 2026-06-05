@@ -8,11 +8,14 @@
 #include "tl/expected.hpp"
 
 #include <optional>
+#include <type_traits>
 #include <variant>
 
 namespace pars {
 template<typename RuleT>
 struct OptionalRule : RuleT {
+	using required_queries_type = RuleT::required_queries_type;
+
 	template<typename StateT>
 	constexpr auto match(StateT&& st) const
 		-> Expected<std::optional<rule_value_t<StateT, RuleT>>, std::monostate> {
@@ -24,17 +27,22 @@ struct OptionalRule : RuleT {
 };
 
 template<typename RuleT>
-inline constexpr auto optional(RuleT&& rule) -> OptionalRule<RuleT> {
+OptionalRule(RuleT&&) -> OptionalRule<std::remove_cvref_t<RuleT>>;
+
+template<typename RuleT>
+inline constexpr auto optional(RuleT&& rule) -> OptionalRule<std::remove_cvref_t<RuleT>> {
 	return {std::forward<RuleT>(rule)};
 }
 
 template<typename RuleT>
-inline constexpr auto operator-(RuleT&& rule) -> OptionalRule<RuleT> {
+inline constexpr auto operator-(RuleT&& rule) -> OptionalRule<std::remove_cvref_t<RuleT>> {
 	return {std::forward<RuleT>(rule)};
 }
 
 template<typename RuleT>
 struct OnceOrMoreRule : RuleT {
+	using required_queries_type = RuleT::required_queries_type;
+
 	template<typename StateT>
 	using Value = std::vector<rule_value_t<StateT, RuleT>>;
 	template<typename StateT>
@@ -53,17 +61,22 @@ struct OnceOrMoreRule : RuleT {
 };
 
 template<typename RuleT>
-inline constexpr auto once_or_more(RuleT&& rule) -> OnceOrMoreRule<RuleT> {
+OnceOrMoreRule(RuleT&&) -> OnceOrMoreRule<std::remove_cvref_t<RuleT>>;
+
+template<typename RuleT>
+inline constexpr auto once_or_more(RuleT&& rule) -> OnceOrMoreRule<std::remove_cvref_t<RuleT>> {
 	return {std::forward<RuleT>(rule)};
 }
 
 template<typename RuleT>
-inline constexpr auto operator+(RuleT&& rule) -> OnceOrMoreRule<RuleT> {
+inline constexpr auto operator+(RuleT&& rule) -> OnceOrMoreRule<std::remove_cvref_t<RuleT>> {
 	return {std::forward<RuleT>(rule)};
 }
 
 template<typename RuleT>
 struct RepeatableRule : RuleT {
+	using required_queries_type = RuleT::required_queries_type;
+
 	template<typename StateT>
 	using Value = std::vector<rule_value_t<StateT, RuleT>>;
 
@@ -76,12 +89,15 @@ struct RepeatableRule : RuleT {
 };
 
 template<typename RuleT>
-inline constexpr auto repeatable(RuleT&& rule) -> RepeatableRule<RuleT> {
+RepeatableRule(RuleT&&) -> RepeatableRule<std::remove_cvref_t<RuleT>>;
+
+template<typename RuleT>
+inline constexpr auto repeatable(RuleT&& rule) -> RepeatableRule<std::remove_cvref_t<RuleT>> {
 	return {std::forward<RuleT>(rule)};
 }
 
 template<typename RuleT>
-inline constexpr auto operator*(RuleT&& rule) -> RepeatableRule<RuleT> {
+inline constexpr auto operator*(RuleT&& rule) -> RepeatableRule<std::remove_cvref_t<RuleT>> {
 	return {std::forward<RuleT>(rule)};
 }
 
