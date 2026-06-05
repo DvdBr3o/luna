@@ -1,0 +1,22 @@
+() ->
+    x := { 0xab, ... }                  -- totally used in cap
+    cata :=                             -- partially used in cap, for catamorphism
+        foo: 0xcc
+        bar: 42
+    discrd := { hello: "world" }        -- totally unused in cap, dicard
+    y -> x .table.append { 0x12, cata.foo, ... }
+
+--- ast:
+Lam(
+    Param(()),
+    Assign(x, Table(ByteLit(0xab), ...),
+        Assign(cata, Table(Pair(foo, ByteLit(0xcc)), Pair(bar, NumLit(42))),
+            Assign(discrd, Table(Pair(hello, StrLit("world"))),
+                Lam(
+                    Param(y),
+                    Apply(Apply(Env(table.append), Env(x)), Table(ByteLit(0x12), Env(cata.foo), ...))
+                )
+            )
+        )
+    )
+)

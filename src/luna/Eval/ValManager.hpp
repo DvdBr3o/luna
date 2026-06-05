@@ -1,7 +1,8 @@
 #pragma once
 
-#include "luna/Parse/Ast.hpp"
-#include "luna/Eval/Val.hpp"
-
 namespace luna::Eval {
+class ValManager {
+public:
+private:
+};
 }  // namespace luna::Eval

@@ -1,0 +1,18 @@
+function _luna_external_module(name)
+target("examples.external_module." .. name)
+    set_default(get_config("enable_examples"))
+    set_kind("shared")
+    set_languages("cxxlatest")
+    add_deps("luna")
+    add_files("lib/" .. name .. ".cpp")
+    add_headerfiles("lib/(**.hpp)")
+end
+_luna_external_module("table")
+
+target("examples.external_module")
+    set_default(get_config("enable_examples"))
+    set_kind("binary")
+    set_languages("cxxlatest")
+    add_deps("luna")
+    add_files("src/**.cpp")
+    add_headerfiles("src/(**.hpp)")

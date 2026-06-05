@@ -1,12 +1,12 @@
-set_group("test")
+set_group("tests")
 
 add_requires("catch2")
 
 function luna_test(name)
-    target("test." .. name)
+    target("tests." .. name)
         set_default(get_config("enable_test"))
         set_kind("binary")
-        set_languages("cxx20")
+        set_languages("cxxlatest")
         add_deps("luna")
         add_packages("catch2")
         add_files(name .. ".cpp")
@@ -14,3 +14,4 @@ function luna_test(name)
 end
 
 luna_test("basic")
+luna_test("parse")

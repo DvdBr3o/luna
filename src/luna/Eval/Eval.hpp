@@ -2,56 +2,39 @@
 
 #include "luna/Eval/Val.hpp"
 #include "luna/Eval/Env.hpp"
-#include "luna/Eval/FnApply.hpp"
 #include "luna/Parse/Ast.hpp"
-
-namespace luna::Eval::legacy {
-inline constexpr auto eval(const Env& env, const Parse::ast::NumLit& numlit) -> Val {
-	return {CstNum {numlit.lit}};
-}
-
-inline constexpr auto eval(const Env& env, const Parse::ast::StrLit& strlit) -> Val {
-	return {CstStr {strlit.lit}};
-}
-
-inline constexpr auto eval(const Env& env, const Parse::ast::FnCall& fncall) -> Val {
-	using namespace Parse::ast;
-	return std::visit(
-		overload {
-			[&env]<typename CallerT, typename CalleeT>
-				requires FnApplyable<CallerT, CalleeT>
-			(const CallerT& caller, const CalleeT& callee) -> Val {
-				return fn_apply(env, caller, callee);
-			},
-			[](const auto& caller, const auto& callee) -> Val { throw; },
-			},
-			*fncall.caller,
-			*fncall.callee
-	);
-}
-
-inline auto eval(const Env& env, const Parse::ast::Lambda& lambda) -> Val {
-	using namespace Parse::ast;
-	return {
-		Clo {
-			 env, *lambda.body
-				| overload {
-					[](const auto& expr) -> Parse::ast::Expr { return {}; },
-				}
-		}
-	};
-}
-
-}  // namespace luna::Eval::legacy
+#include "luna/Utils/Arena.hpp"
 
 namespace luna::Eval {
-inline auto eval(const Env& env, const Parse::ast::Lambda& lambda) -> Val {
-	namespace ast = Parse::ast;
-	return {
-		Clo {
-			 .env = env,
-			 //  .expr = *lambda.body,
-		}
-	};
+inline auto eval(const Parse::ast::ValIdent& val_ident, const Tbl& env) -> Val {
+	return {};
 }
+
+inline auto eval(const Parse::ast::Lambda& lambda, const Tbl& env) -> Val {
+	namespace ast = Parse::ast;
+
+	ExpClo::Env			  env_exp;
+	ScratchArenaAllocator scratch;
+
+	*lambda.body
+		| overload {
+			[&](const ast::ValIdent& val_ident) {
+				// TODO:
+				// env_exp[val_ident.ident] = env.tbl.at(scratch.create<Val>(eval(val_ident, env)));
+			},
+			[](auto&& e) {},
+		};
+
+	// clang-format off
+	return {Clo{ExpClo{
+		.env = std::move(env_exp),
+		.exp = *lambda.body,
+	}}};
+	// clang-format on
+}
+
+inline auto eval(const Parse::ast::FnCall& fncall, const Tbl& env) -> Val {
+	namespace ast = Parse::ast;
+}
+
 }  // namespace luna::Eval

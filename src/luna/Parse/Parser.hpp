@@ -1,7 +1,8 @@
 #pragma once
 
 #include "luna/Source.hpp"
-#include "pars.hpp"
+#include "pars/Query.hpp"
+#include "pars/Utf.hpp"
 
 #include <cstdint>
 #include <stack>
@@ -15,31 +16,14 @@ struct IndentState : public std::stack<Indent> {
 	IndentState() : std::stack<Indent> {{Indent {0}}} {}
 };
 
-struct QueryIndentState :
-	pars::QueryTagBase<QueryIndentState>,
-	pars::CopyPasteSnapshot<QueryIndentState, IndentState> {
-	using QueryableType = IndentState;
-};
+struct QueryIndentState : pars::QueryTag<IndentState> {};
 
-struct QueryLocation :
-	pars::QueryTagBase<QueryLocation>,
-	pars::CopyPasteSnapshot<QueryLocation, Location> {
-	using QueryableType = Location;
-};
-
-inline constexpr QueryLocation query_location;
-
-class LunaParserState :
-	public pars::QueryableMixin<pars::QueryParserCursor>,
-	public pars::QueryableMixin<QueryIndentState>,
-	public pars::QueryableMixin<QueryLocation> {
-public:
-	explicit LunaParserState(std::u8string_view s) :
-		QueryableMixin<pars::QueryParserCursor> {{s}} {}
-
-	using QueryableMixin<pars::QueryParserCursor>::query;
-	using QueryableMixin<QueryIndentState>::query;
-	using QueryableMixin<QueryLocation>::query;
+struct LunaParserState :
+	pars::QueryState<pars::u8::QueryTextCursor>,
+	pars::QueryState<QueryIndentState> {
+	explicit LunaParserState(std::u8string_view script) :
+		pars::QueryState<pars::u8::QueryTextCursor> {script},
+		pars::QueryState<QueryIndentState> {} {}
 };
 
 using Parser = LunaParserState;

@@ -1,11 +1,9 @@
 #pragma once
 
-#include "pars/Query.hpp"
-
 #include <memory_resource>
 #include <new>
 
-namespace pars {
+namespace luna {
 template<typename T>
 class Arena {
 public:
@@ -79,10 +77,4 @@ private:
 using ArenaAllocator		= BasicArenaAllocator<4096>;
 using ScratchArenaAllocator = BasicArenaAllocator<128>;
 
-template<size_t Size = 4096>
-struct QueryArena : QueryTag<BasicArenaAllocator<Size>> {};
-
-template<size_t Size = 4096>
-struct ArenaState : QueryState<QueryArena<Size>> {};
-
-}  // namespace pars
+}  // namespace luna

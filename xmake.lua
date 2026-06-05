@@ -1,26 +1,34 @@
 add_rules("mode.debug", "mode.release")
 set_encodings("utf-8")
 
-option("enable_test")
+option("enable_tests")
     set_default(false)
     set_description("whether to enable test for luna.")
     set_showmenu(true)
 option_end()
 
+option("enable_examples")
+    set_default(false)
+    set_description("whether to build example for luna.")
+    set_showmenu(true)
+option_end()
+
 includes("vendor")
-includes("test")
+includes("tests")
+includes("examples")
 
 -- add_requires("pars main")
-add_requires("libllvm", {
-    configs = {},
-})
+-- add_requires("libllvm", {
+--     configs = {},
+-- })
 add_requires("fmt")
 add_requires("abseil")
 add_requires("dylib")
 add_requires("immer")
+add_requires("asmjit")
 
 target("luna")
-    set_languages("cxx20")
+    set_languages("cxxlatest")
     set_kind("static")
 
     -- add_packages("pars", {public = true})
@@ -30,6 +38,7 @@ target("luna")
     add_packages("abseil", {public = true})
     add_packages("dylib", {public = true})
     add_packages("immer", {public = true})
+    add_packages("asmjit", {public = true})
 
     add_headerfiles("src/(**.hpp)", {public = true})
     add_files("src/**.cpp|!src/main.cpp")
@@ -49,7 +58,7 @@ target("luna")
     end)
 
 target("luna.cli")
-    set_languages("cxx20")
+    set_languages("cxxlatest")
     set_kind("binary")
     add_deps("luna")
     add_files("src/**.cpp")

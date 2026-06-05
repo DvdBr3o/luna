@@ -1,3 +1,6 @@
 Diagnostics:
   Suppress:
     - ast_file_not_found # module workaround
+
+CompileFlags:
+ Add: [-std=c++23]
