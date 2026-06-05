@@ -13,7 +13,7 @@ inline constexpr auto embraced(char32_t l, char32_t r) {
 }
 
 inline constexpr auto parenthesised = embraced('(', ')');
-inline constexpr auto braced		= embraced('[', ']');
-inline constexpr auto bracketed		= embraced('{', '}');
+inline constexpr auto bracketed		= embraced('[', ']');
+inline constexpr auto braced		= embraced('{', '}');
 
 }  // namespace pars

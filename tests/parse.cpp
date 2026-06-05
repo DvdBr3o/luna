@@ -44,7 +44,7 @@ TEST_CASE("pars can work.", "[pars]") {
 }
 
 TEST_CASE("pars can parse embrace utils.", "[pars.rules.utils.embrace]") {
-	static constexpr auto r = bracketed(*c('a'));
+	static constexpr auto r = braced(*c('a'));
 
 	REQUIRE(match_luna(r, u8"{aaaaa}"));
 }
