@@ -23,7 +23,9 @@ struct QueryState {
 	inline friend constexpr auto query(Derived&& derived, QueryT) -> decltype(auto)
 		requires std::derived_from<std::remove_cvref_t<Derived>, QueryState>
 	{
-		return (std::forward_like<Derived>(static_cast<QueryState&>(derived)).queryable);
+		return (
+			std::forward_like<Derived>(static_cast<QueryState&>(derived)).QueryState::queryable
+		);
 	}
 };
 
@@ -33,7 +35,7 @@ struct QueryTag {
 
 	template<typename Self, typename QueryableTT>
 	constexpr auto operator()(this Self&& self, QueryableTT&& queryable) -> decltype(auto) {
-		return query(std::forward<QueryableTT>(queryable), Self {});
+		return (query(std::forward<QueryableTT>(queryable), self));
 	}
 };
 
@@ -41,14 +43,19 @@ template<typename T, typename QueryT>
 inline constexpr auto query(T&& t, QueryT q) -> decltype(auto)
 	requires requires { t.query(q); }
 {
-	return (t.query(q));
+	return (std::forward<T>(t).query(q));
 }
 
 template<typename T, typename QueryT>
 using query_t = decltype(query(std::declval<T>(), std::declval<QueryT>()));
 
+struct RequiredQueriesSig {};
+
+template<typename... QueryTs>
+using rq = RequiredQueriesSig(QueryTs...);
+
 template<typename... Ts>
 using required_queries_of_rules_t =
-	tuple_cup_t<typename std::remove_cvref_t<Ts>::required_queries_type...>;
+	sig_cat_t<typename std::remove_cvref_t<Ts>::required_queries_type...>;
 
 }  // namespace pars

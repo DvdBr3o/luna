@@ -2,6 +2,8 @@
 
 #include "luna/Utils/Hash.hpp"
 #include "luna/Utils/Overload.hpp"
+#include "pars/Arena.hpp"
+#include "pars/Meta.hpp"
 
 #include <absl/container/node_hash_map.h>
 #include <absl/hash/hash.h>
@@ -116,6 +118,12 @@ struct Ident : std::variant<ValIdent, OpIdent> {
 	inline friend auto AbslHashValue(H h, const Ident& ident) -> H {
 		return absl_hash_variant(std::move(h), static_cast<const Base&>(ident));
 	}
+};
+
+struct Apply {
+	using Item = pars::unique_type_variant_t<ValIdent, OpIdent, pars::Arena<Apply>>;
+	Item applyer;
+	Item applyee;
 };
 
 struct Lambda {

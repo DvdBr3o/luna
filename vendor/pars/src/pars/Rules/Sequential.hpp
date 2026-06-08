@@ -7,6 +7,7 @@
 #include <tl/expected.hpp>
 
 #include <format>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <variant>
@@ -39,8 +40,8 @@ struct SequentialRule : std::tuple<RuleTs...> {
 		using Error	 = Error<std::remove_cvref_t<StateT>>;
 		using Result = Expected<Value, Error>;
 
-		Value value;
-		Error error;
+		Value					value;
+		std::optional<Error> error;
 
 		if ([&]<size_t... Is>(std::index_sequence<Is...>) {
 				return ([&]() {
@@ -49,15 +50,14 @@ struct SequentialRule : std::tuple<RuleTs...> {
 						std::get<Is>(value) = std::move(res.value());
 						return true;
 					} else {
-						error.error = std::move(res.error());
+						error = Error {.pos = Is, .error = std::move(res.error())};
 						return false;
 					}
-					++error.pos;
 				}() && ...);
 			}(std::make_index_sequence<sizeof...(RuleTs)>())) {
 			return value;
 		} else {
-			return tl::make_unexpected(std::move(error));
+			return tl::make_unexpected(std::move(*error));
 		}
 	}
 
@@ -95,10 +95,11 @@ inline constexpr auto operator>>(SequentialRule<Ls...>&& l, SequentialRule<Rs...
 }
 
 template<typename L, typename... Rs>
-inline constexpr auto operator>>(L&& l, SequentialRule<Rs...>&& r) -> SequentialRule<L, Rs...> {
+inline constexpr auto operator>>(L&& l, SequentialRule<Rs...>&& r)
+	-> SequentialRule<std::remove_cvref_t<L>, std::remove_cvref_t<Rs>...> {
 	return std::apply(
 		[&](auto&&... rs) {
-			return SequentialRule<L, Rs...> {
+			return SequentialRule<std::remove_cvref_t<L>, std::remove_cvref_t<Rs>...> {
 				std::forward<L>(l),
 				std::forward_like<decltype(r)>(rs)...
 			};
@@ -108,10 +109,11 @@ inline constexpr auto operator>>(L&& l, SequentialRule<Rs...>&& r) -> Sequential
 }
 
 template<typename... Ls, typename R>
-inline constexpr auto operator>>(SequentialRule<Ls...>&& l, R&& r) -> SequentialRule<Ls..., R> {
+inline constexpr auto operator>>(SequentialRule<Ls...>&& l, R&& r)
+	-> SequentialRule<std::remove_cvref_t<Ls>..., std::remove_cvref_t<R>> {
 	return std::apply(
 		[&](auto&&... ls) {
-			return SequentialRule<Ls..., R> {
+			return SequentialRule<std::remove_cvref_t<Ls>..., std::remove_cvref_t<R>> {
 				std::forward_like<decltype(l)>(ls)...,
 				std::forward<R>(r)
 			};
@@ -121,7 +123,8 @@ inline constexpr auto operator>>(SequentialRule<Ls...>&& l, R&& r) -> Sequential
 }
 
 template<typename L, typename R>
-inline constexpr auto operator>>(L&& l, R&& r) -> SequentialRule<L, R> {
+inline constexpr auto operator>>(L&& l, R&& r)
+	-> SequentialRule<std::remove_cvref_t<L>, std::remove_cvref_t<R>> {
 	return {std::forward<L>(l), std::forward<R>(r)};
 }
 

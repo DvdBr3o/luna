@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pars/Rules/Char.hpp"
 #include "pars/Rules/Transform.hpp"
 
 #include <utility>
@@ -15,5 +16,15 @@ inline constexpr auto embraced(char32_t l, char32_t r) {
 inline constexpr auto parenthesised = embraced('(', ')');
 inline constexpr auto bracketed		= embraced('[', ']');
 inline constexpr auto braced		= embraced('{', '}');
+
+inline constexpr auto sp			= cset(' ', '\t');
+
+struct TodoRule {
+	constexpr auto match(auto&& state) const -> Expected<std::monostate, std::monostate> {
+		static_assert(false, "there is still a todo rule to be implemented!");
+	}
+};
+
+inline constexpr auto todo = TodoRule {};
 
 }  // namespace pars

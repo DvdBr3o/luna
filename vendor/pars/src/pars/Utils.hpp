@@ -19,7 +19,7 @@ namespace u8 {
 class Cursor {
 public:
 	inline static constexpr char32_t eof = 0;
-	using value_type				 = char32_t;
+	using value_type					 = char32_t;
 
 public:
 	constexpr Cursor(std::u8string_view sv) :
@@ -65,11 +65,12 @@ namespace seq {
 template<typename T>
 class Cursor {
 public:
-	using value_type = T;
+	using value_type					   = T;
 	inline static constexpr value_type eof = value_type {};
 
 public:
-	constexpr Cursor(std::span<const value_type> stream) : _cursor {stream.data()}, _stream {stream} {}
+	constexpr Cursor(std::span<const value_type> stream) :
+		_cursor {stream.data()}, _stream {stream} {}
 
 	template<size_t N>
 	constexpr Cursor(const std::array<value_type, N>& stream) : Cursor(std::span {stream}) {}
@@ -107,7 +108,7 @@ public:
 	}
 
 private:
-	const value_type*		_cursor;
+	const value_type*			_cursor;
 	std::span<const value_type> _stream;
 };
 }  // namespace seq
@@ -547,9 +548,13 @@ inline constexpr auto tag_invoke(error_of_t, const std::optional<T>&&) -> std::m
 	return {};
 }
 
-inline constexpr auto tag_invoke(value_of_t, std::monostate value) -> std::monostate { return value; }
+inline constexpr auto tag_invoke(value_of_t, std::monostate value) -> std::monostate {
+	return value;
+}
 
-inline constexpr auto tag_invoke(error_of_t, std::monostate value) -> std::monostate { return value; }
+inline constexpr auto tag_invoke(error_of_t, std::monostate value) -> std::monostate {
+	return value;
+}
 
 template<typename T>
 	requires TagInvocable<T&, value_of_t>

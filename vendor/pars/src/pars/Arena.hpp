@@ -71,6 +71,12 @@ public:
 		return reinterpret_cast<T*>(ptr);
 	}
 
+	inline friend constexpr auto snapshot(const BasicArenaAllocator& allocator) -> std::monostate {
+		return {};
+	}
+
+	inline friend constexpr auto rollback(BasicArenaAllocator& allocator, std::monostate) -> void {}
+
 private:
 	char								_buffer[BasicSize] {};
 	std::pmr::monotonic_buffer_resource _arena;
@@ -83,6 +89,14 @@ template<size_t Size = 4096>
 struct QueryArena : QueryTag<BasicArenaAllocator<Size>> {};
 
 template<size_t Size = 4096>
-struct ArenaState : QueryState<QueryArena<Size>> {};
+struct QueryErrorArena : QueryTag<BasicArenaAllocator<Size>> {};
+
+template<size_t Size = 4096>
+inline constexpr auto query_arena = QueryArena<Size> {};
+template<size_t Size = 4096>
+inline constexpr auto query_error_arena = QueryErrorArena<Size> {};
+
+template<size_t Size = 4096>
+struct ArenaState : QueryState<QueryArena<Size>>, QueryState<QueryErrorArena<>> {};
 
 }  // namespace pars

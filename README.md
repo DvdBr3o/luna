@@ -11,7 +11,7 @@ luna is an elegant programming language featuring partial evaluation, multi stag
 
 2.
 
-## A Quich Example
+## A Quick Example
 
 ```luna
 

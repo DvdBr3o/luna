@@ -33,7 +33,7 @@ inline constexpr auto query_effect_impl = query_effect_impl_t {};
 
 template<typename FnT, typename... QueryTs>
 struct QueryEffectRule : FnImpl<query_effect_impl_t, FnT> {
-	using required_queries_type = std::tuple<QueryTs...>;
+	using required_queries_type = rq<QueryTs...>;
 
 	template<typename StateT>
 	constexpr auto match(StateT&& st) const -> decltype(auto) {
@@ -61,9 +61,10 @@ inline constexpr auto query_effect(FnT&& fn) -> QueryEffectRule<FnT, decltype(Qu
 	return {std::forward<FnT>(fn)};
 }
 
-template<Like<std::tuple> QueryTs, typename FnT>
+template<typename QuerySig, typename FnT>
 inline constexpr auto query_effec1t(FnT&& fn)
-	-> templ_from_type_tuple_t<QueryEffectRule, tuple_cup_t<std::tuple<FnT>, QueryTs>> {
+	-> templ_from_type_tuple_t<
+		QueryEffectRule, tuple_cup_t<std::tuple<FnT>, typename fn_sig<QuerySig>::args_tuple>> {
 	return {std::forward<FnT>(fn)};
 }
 

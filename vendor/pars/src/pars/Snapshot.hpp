@@ -70,7 +70,7 @@ struct snap_guard {
 	struct make_snap_guard_type {};
 
 	template<typename... Ts>
-	struct make_snap_guard_type<std::tuple<Ts...>> {
+	struct make_snap_guard_type<rq<Ts...>> {
 		using type = SnapshotGuard<StateT, Ts...>;
 	};
 
@@ -79,8 +79,8 @@ struct snap_guard {
 	// 	return {state};
 	// }
 
-	template<Like<std::tuple> TupleT>
-	inline constexpr auto of() -> make_snap_guard_type<TupleT>::type {
+	template<typename QuerySig>
+	inline constexpr auto of() -> typename make_snap_guard_type<QuerySig>::type {
 		return {state};
 	}
 };

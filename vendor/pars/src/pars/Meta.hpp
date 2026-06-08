@@ -9,8 +9,10 @@
 
 #if defined _MSC_VER  // && not defined __clang__
 #	define PARS_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#	define PARS_ALWAYS_INLINE	   __forceinline__
 #else
 #	define PARS_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#	define PARS_ALWAYS_INLINE	   [[clang::always_inline]]
 #endif
 
 namespace pars {
@@ -19,13 +21,13 @@ struct overload : Ts... {
 	using Ts::operator()...;
 };
 
-template<typename StateT, RuleC<StateT> RuleT>
+template<typename StateT, typename RuleT>
 using rule_result_t = decltype(std::declval<RuleT>().match(std::declval<StateT>()));
 
-template<typename StateT, RuleC<StateT> RuleT>
+template<typename StateT, typename RuleT>
 using rule_value_t = value_type_of_t<rule_result_t<StateT, RuleT>>;
 
-template<typename StateT, RuleC<StateT> RuleT>
+template<typename StateT, typename RuleT>
 using rule_error_t = error_type_of_t<rule_result_t<StateT, RuleT>>;
 
 template<typename T>
@@ -226,5 +228,54 @@ struct apply_result<FnT, std::tuple<Ts...>> {
 
 template<typename FnT, Like<std::tuple> TupleT>
 using apply_result_t = apply_result<FnT, TupleT>::type;
+
+}  // namespace pars
+
+/* Signatures */
+namespace pars {
+template<typename SigTL, typename SigTR>
+struct sig_equal : std::false_type {};
+
+template<typename SigT, typename... ArgTsL, typename... ArgTsR>
+struct sig_equal<SigT(ArgTsL...), SigT(ArgTsR...)> {
+	static constexpr auto value =
+		(is_among_v<ArgTsL, ArgTsR...> && ...) && (is_among_v<ArgTsR, ArgTsL...> && ...);
+};
+
+template<typename SigTL, typename SigTR>
+inline constexpr auto sig_equal_v = sig_equal<SigTL, SigTR>::value;
+
+template<typename... SigTs>
+struct sig_cat {};
+
+template<typename SigT>
+struct sig_cat<SigT> {
+	using type = SigT;
+};
+
+template<typename SigT, typename... ArgTsL, typename ArgTsR0, typename... ArgTsR>
+struct sig_cat<SigT(ArgTsL...), SigT(ArgTsR0, ArgTsR...)> {
+	using type = std::conditional_t<
+		is_among_v<ArgTsR0, ArgTsL...>, typename sig_cat<SigT(ArgTsL...), SigT(ArgTsR...)>::type,
+		typename sig_cat<SigT(ArgTsL..., ArgTsR0), SigT(ArgTsR...)>::type>;
+};
+
+template<typename SigT, typename... ArgTsL>
+struct sig_cat<SigT(ArgTsL...), SigT()> {
+	using type = SigT(ArgTsL...);
+};
+
+template<typename SigTL, typename SigTR, typename... ArgTsL, typename... ArgTsR>
+struct sig_cat<SigTL(ArgTsL...), SigTR(ArgTsR...)> {
+	static_assert(false, "Signature of each sig type should be the same!");
+};
+
+template<typename SigT0, typename SigT1, typename... SigTs>
+struct sig_cat<SigT0, SigT1, SigTs...> {
+	using type = sig_cat<typename sig_cat<SigT0, SigT1>::type, SigTs...>::type;
+};
+
+template<typename... SigTs>
+using sig_cat_t = sig_cat<SigTs...>::type;
 
 }  // namespace pars

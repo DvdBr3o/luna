@@ -15,11 +15,11 @@
 
 namespace luna::tests::parse {
 using namespace pars;
+using namespace luna::Parse;
 
 struct LunaParserState :
-	u8::TextCursorState,
-	pars::ArenaState<>
-
+	u8::TextCursorState,  //
+	pars::ArenaState<>	  //
 {
 	constexpr explicit LunaParserState(std::u8string_view sv) : u8::TextCursorState {sv} {}
 };
@@ -31,9 +31,10 @@ inline constexpr auto match_luna(auto&& rule, std::u8string_view script) -> decl
 TEST_CASE("pars can work.", "[pars]") {
 	using RecurResult = Expected<std::monostate, std::monostate>;
 	static constexpr auto resursive_parenthesis =
-		fix<RecurResult>::of<u8::QueryTextCursor>([](auto&& fx) constexpr {
-			return cstr(U"()") | c('(') >> fx >> c(')')	 //
-				%= result_to([](auto&& res) -> RecurResult {
+		fix_v2::fix_expected<std::monostate>([](auto&& fx) constexpr {
+			// return (cstr(U"()") | sequential(c('('), fx, c(')')))  //
+			return (cstr(U"()") | c('(') >> fx >> c(')'))  //
+				 ^ result_to([](auto&& res) -> RecurResult {
 					   if (res)
 						   return std::monostate {};
 					   else
@@ -50,9 +51,16 @@ TEST_CASE("pars can parse embrace utils.", "[pars.rules.utils.embrace]") {
 }
 
 TEST_CASE("can parse identifier", "[luna.parse.ident]") {
-	REQUIRE(match_luna(Parse::val_ident, u8"hello").value() == U"hello");
-	REQUIRE(match_luna(Parse::val_ident, u8"hello123").value() == U"hello123");
-	REQUIRE(match_luna(Parse::val_ident, u8"Hello123A").value() == U"Hello123A");
+	REQUIRE(value_of(match_luna(val_ident, u8"hello")) == u8"hello");
+	REQUIRE(value_of(match_luna(val_ident, u8"hello123")) == u8"hello123");
+	REQUIRE(value_of(match_luna(val_ident, u8"Hello123A")) == u8"Hello123A");
+
+	REQUIRE(value_of(match_luna(op_ident, u8"+=")) == u8"+=");
+	REQUIRE(value_of(match_luna(op_ident, u8"--")) == u8"--");
+	REQUIRE(value_of(match_luna(op_ident, u8">>")) == u8">>");
+
+	// REQUIRE(match_luna(val_currying_apply, u8"a b c"));
+	// REQUIRE(match_luna(op_apply, u8"a += c"));
 }
 
 TEST_CASE("can parse member access grammer", "[luna.parse.access.member]") {

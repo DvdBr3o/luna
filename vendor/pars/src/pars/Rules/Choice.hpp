@@ -7,6 +7,7 @@
 
 #include <tl/expected.hpp>
 
+#include <optional>
 #include <tuple>
 #include <utility>
 
@@ -45,12 +46,13 @@ struct ChoiceRule : std::tuple<RuleTs...> {
 	template<typename StateT>
 	constexpr auto match(StateT&& st) const
 		-> Expected<unique_type_variant_t<rule_value_t<StateT, RuleTs>...>, Error<StateT>> {
-		using Value	 = unique_type_variant_t<rule_value_t<StateT, RuleTs>...>;
-		using Error	 = Error<StateT>;
-		using Result = Expected<Value, Error>;
+		using Value		   = unique_type_variant_t<rule_value_t<StateT, RuleTs>...>;
+		using Error		   = Error<StateT>;
+		using Result	   = Expected<Value, Error>;
+		using ErrorStorage = std::tuple<std::optional<rule_error_t<StateT, RuleTs>>...>;
 
-		Value value;
-		Error error;
+		Value		 value;
+		ErrorStorage error;
 
 		if ([&]<size_t... Is>(std::index_sequence<Is...>) {
 				return ([&]() {
@@ -67,7 +69,12 @@ struct ChoiceRule : std::tuple<RuleTs...> {
 			}(std::make_index_sequence<sizeof...(RuleTs)>())) {
 			return value;
 		} else {
-			return tl::make_unexpected(std::move(error));
+			return tl::make_unexpected(
+				std::apply(
+					[](auto&&... errs) -> Error { return Error {std::move(*errs)...}; },
+					std::move(error)
+				)
+			);
 		}
 	}
 

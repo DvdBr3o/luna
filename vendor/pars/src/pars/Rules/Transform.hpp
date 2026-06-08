@@ -2,7 +2,8 @@
 
 #include "pars/Meta.hpp"
 #include "pars/Query.hpp"
-#include "tl/expected.hpp"
+
+#include <tl/expected.hpp>
 
 #include <concepts>
 #include <type_traits>
@@ -27,7 +28,7 @@ struct ValueTransformRule {
 	constexpr auto match(StateT&& st) const -> Result<StateT> {
 		auto res = rule.match(std::forward<StateT>(st));
 		if (res)
-			std::invoke(fn, std::move(value_of(res)));
+			return std::invoke(fn, std::move(value_of(res)));
 		else
 			return tl::make_unexpected(std::move(error_of(res)));
 	}
@@ -172,7 +173,7 @@ inline constexpr auto operator%=(RuleT&& rule, ValueVisitFunctor<FnT>&& functor)
 
 template<typename RuleT, typename FnT>
 inline constexpr auto operator^(RuleT&& rule, ValueVisitFunctor<FnT>&& functor)
-	-> ValueApplyRule<RuleT, FnT> {
+	-> ValueVisitRule<RuleT, FnT> {
 	return {std::forward<RuleT>(rule), std::forward<FnT>(functor.fn)};
 }
 
